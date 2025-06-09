@@ -1,4 +1,5 @@
-const axios = require('axios');
+const axios = require('./httpClient');
+const logger = require('./logger');
 
 // 🔁 Convierte una cantidad desde una moneda a euros
 async function convertToEUR(amount, fromCurrency) {
@@ -14,7 +15,7 @@ async function convertToEUR(amount, fromCurrency) {
     const converted = res.data.result;
     return converted ? parseFloat(converted.toFixed(2)) : null;
   } catch (err) {
-    console.error('❌ Error en conversión de divisa:', err.message);
+    logger.error(`❌ Error en conversión de divisa: ${err.message}`);
     return null;
   }
 }

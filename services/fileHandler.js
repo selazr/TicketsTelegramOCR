@@ -1,8 +1,9 @@
 const fs = require('fs');
-const axios = require('axios');
+const axios = require('./httpClient');
 const sharp = require('sharp');
 const { askGPT4oWithImage } = require('./gpt');
 const { formatTicketData } = require('./formatter');
+const logger = require('./logger');
 
 async function handleTicketPhoto(bot, msg) {
   const chatId = msg.chat.id;
@@ -27,7 +28,7 @@ async function handleTicketPhoto(bot, msg) {
       fs.unlinkSync(filePath);
     });
   } catch (error) {
-    console.error('❌ Error GPT:', error);
+    logger.error(`❌ Error GPT: ${error.message}`);
     await bot.sendMessage(chatId, '❌ Error al procesar con GPT-4o.');
   }
 }

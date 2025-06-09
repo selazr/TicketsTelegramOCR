@@ -1,4 +1,5 @@
-const axios = require('axios');
+const axios = require('./httpClient');
+const logger = require('./logger');
 
 async function askGPT4oWithImage(base64Image) {
   const response = await axios.post(
@@ -53,7 +54,7 @@ No agregues explicaciones, solo el JSON directamente. Usa "alimentos", "maquinar
     const jsonString = textResponse.slice(jsonStart, jsonEnd + 1);
     return JSON.parse(jsonString);
   } catch (err) {
-    console.error('❌ JSON malformado:', textResponse);
+    logger.error(`❌ JSON malformado: ${textResponse}`);
     return { error: '❌ Error al convertir la respuesta de GPT-4o.' };
   }
 }
