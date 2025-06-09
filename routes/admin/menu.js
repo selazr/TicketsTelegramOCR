@@ -47,7 +47,8 @@ module.exports = (bot) => {
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
-💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})
+💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
+            (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + `
 🕒 *Fecha:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
           if (ticket.image) {
@@ -81,7 +82,11 @@ module.exports = (bot) => {
 
     if (data === 'admin_stats') {
       const stats = await getStats();
-      await bot.sendMessage(chatId, `📊 Tickets registrados: ${stats.totalTickets}`);
+      let msgStats = `📊 Tickets registrados: ${stats.totalTickets}`;
+      if (stats.totalEUR !== undefined) {
+        msgStats += `\n💶 Gasto total aproximado: ${stats.totalEUR} EUR`;
+      }
+      await bot.sendMessage(chatId, msgStats);
       await bot.answerCallbackQuery({ callback_query_id: query.id });
     }
   });
@@ -101,7 +106,8 @@ module.exports = (bot) => {
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
-💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})
+💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
+          (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + `
 🕒 *Fecha:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
         if (ticket.image) {

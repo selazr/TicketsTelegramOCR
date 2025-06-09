@@ -1,7 +1,14 @@
+const { adminIds } = require('../config/admins');
+
 module.exports = (bot, sessions) => {
   const sendStartMessage = (chatId) => {
     sessions[chatId] = { step: 'start' };
-    bot.sendMessage(chatId, '👋 Hola, ¿desea subir un ticket?', {
+
+    const greeting = adminIds.includes(chatId)
+      ? '👋 ¡Hola administrador! Usa /admin para acceder al panel.\n¿Deseas subir un ticket ahora?'
+      : '👋 ¡Hola! Bienvenido al bot de tickets. Puedes registrar tus compras aquí.\n¿Deseas subir un ticket?';
+
+    bot.sendMessage(chatId, greeting, {
       reply_markup: {
         inline_keyboard: [
           [

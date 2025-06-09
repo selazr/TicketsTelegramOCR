@@ -79,7 +79,11 @@ async function deleteTicketById(id) {
 
 async function getStats() {
   const totalTickets = await Ticket.count();
-  return { totalTickets };
+  const totalEUR = await Ticket.sum('total_eur');
+  return {
+    totalTickets,
+    totalEUR: totalEUR ? parseFloat(totalEUR.toFixed(2)) : 0
+  };
 }
 
 module.exports = {

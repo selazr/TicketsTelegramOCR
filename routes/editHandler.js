@@ -1,5 +1,6 @@
 const { convertToEUR, extractAmount } = require('../services/exchange');
-const { updateTicketFinal } = require('../services/db');
+const { updateTicketFinal, getTicketById } = require('../services/db');
+const { notifyAdmins } = require('../services/notifications');
 
 module.exports = (bot, sessions) => {
   // Botón de editar
@@ -44,6 +45,10 @@ module.exports = (bot, sessions) => {
       });
 
       await bot.sendMessage(chatId, '✅ Ticket guardado correctamente. ¡Gracias!');
+
+      const ticket = await getTicketById(ticketId);
+      notifyAdmins(bot, ticket);
+
       delete sessions[chatId];
       await bot.answerCallbackQuery({ callback_query_id: query.id });
     }
