@@ -38,22 +38,12 @@ module.exports = (bot, sessions) => {
 console.log('🎯 Tickets obtenidos:', JSON.stringify(tickets, null, 2));
 
         for (const ticket of tickets) {
-          let gpt = ticket.gpt_data;
-
-          // 🔐 Asegura que gpt_data sea objeto
-          if (typeof gpt === 'string') {
-            try {
-              gpt = JSON.parse(gpt);
-            } catch {
-              gpt = {};
-            }
-          }
 
           const resumen = `🎟️ *Ticket ID:* ${ticket.id}
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
-💰 *Total:* ${gpt.total || 'N/A'} (${ticket.currency || 'N/A'})
+💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})
 🕒 *Fecha:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
           await bot.sendMessage(chatId, resumen, { parse_mode: 'Markdown' });

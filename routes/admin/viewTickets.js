@@ -1,11 +1,11 @@
-const { getLatestTickets } = require('../../services/db');
+const { getLastTickets } = require('../../services/db');
 
 module.exports = (bot) => {
   bot.onText(/^\/admin_tickets$/, async (msg) => {
     const chatId = msg.chat.id;
 
     try {
-      const tickets = await getLatestTickets(5); // Número configurable
+      const tickets = await getLastTickets(5); // Número configurable
 
       if (tickets.length === 0) {
         await bot.sendMessage(chatId, '❌ No se encontraron tickets recientes.');
