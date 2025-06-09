@@ -1,3 +1,6 @@
+const { convertToEUR, extractAmount } = require('../services/exchange');
+const { updateTicketFinal } = require('../services/db');
+
 module.exports = (bot, sessions) => {
   // Botón de editar
   bot.on('callback_query', async (query) => {
@@ -13,7 +16,8 @@ module.exports = (bot, sessions) => {
       edit_store: 'editing_store',
       edit_card: 'editing_card',
       edit_date: 'editing_date',
-      edit_total: 'editing_total'
+      edit_total: 'editing_total',
+      edit_currency: 'editing_currency'
     };
 
     if (editableFields[data]) {
@@ -25,6 +29,20 @@ module.exports = (bot, sessions) => {
 
     // Confirmar ticket como correcto
     if (data === 'confirm_ticket') {
+      const { ticketId, ticketData } = session;
+      const { store, card_last4, total, date, time, items, currency, total_eur } = ticketData;
+
+      await updateTicketFinal(ticketId, {
+        store,
+        card_last4,
+        total,
+        date,
+        time,
+        items,
+        currency,
+        total_eur
+      });
+
       await bot.sendMessage(chatId, '✅ Ticket guardado correctamente. ¡Gracias!');
       delete sessions[chatId];
       await bot.answerCallbackQuery({ callback_query_id: query.id });
@@ -52,15 +70,31 @@ module.exports = (bot, sessions) => {
       case 'editing_total':
         session.ticketData.total = value;
         break;
+      case 'editing_currency':
+        session.ticketData.currency = value.toUpperCase().trim();
+        const amount = extractAmount(session.ticketData.total);
+        session.ticketData.total_eur = amount
+          ? await convertToEUR(amount, session.ticketData.currency)
+          : null;
+        break;
       default:
         return; // Si no estaba editando nada, no hacer nada
     }
 
     session.step = 'review_ticket';
 
-    const { store, card_last4, total, date, time, items } = session.ticketData;
+    const { store, card_last4, total, date, time, items, currency, total_eur } = session.ticketData;
 
-    const resumen = `🧾 *Establecimiento:* ${store || 'N/A'}\n💳 *Tarjeta:* **** ${card_last4 || 'N/A'}\n🕒 *Fecha:* ${date || 'N/A'} - ${time || ''}\n💰 *Total:* ${total || 'N/A'}\n\n🛒 *Productos:*\n${(items || []).map(i => `- ${i.name} → ${i.category}`).join('\n')}`;
+    let totalLine = `💰 *Total:* ${total || 'N/A'} (${currency || 'EUR'})`;
+    if (total_eur) totalLine += ` (~${total_eur} EUR)`;
+
+    const resumen = `🧾 *Establecimiento:* ${store || 'N/A'}
+💳 *Tarjeta:* **** ${card_last4 || 'N/A'}
+🕒 *Fecha:* ${date || 'N/A'} - ${time || ''}
+${totalLine}
+
+🛒 *Productos:*
+${(items || []).map(i => `- ${i.name} → ${i.category}`).join('\n')}`;
 
     await bot.sendMessage(chatId, `📄 Datos actualizados:\n\n${resumen}`, {
       parse_mode: 'Markdown',
@@ -72,7 +106,8 @@ module.exports = (bot, sessions) => {
           ],
           [
             { text: '✏️ Fecha', callback_data: 'edit_date' },
-            { text: '✏️ Total', callback_data: 'edit_total' }
+            { text: '✏️ Total', callback_data: 'edit_total' },
+            { text: '✏️ Moneda', callback_data: 'edit_currency' }
           ],
           [
             { text: '✅ Todo correcto / Continuar', callback_data: 'confirm_ticket' }

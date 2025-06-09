@@ -1,6 +1,11 @@
 const axios = require('axios');
 const { askGPT4oWithImage } = require('../services/gpt');
 const { saveTicketToDB } = require('../services/db');
+const {
+  convertToEUR,
+  detectCurrencySymbol,
+  extractAmount
+} = require('../services/exchange');
 
 module.exports = (bot, sessions) => {
   bot.on('photo', async (msg) => {
@@ -15,21 +20,70 @@ module.exports = (bot, sessions) => {
       const res = await axios({ url, responseType: 'arraybuffer' });
       const base64Image = Buffer.from(res.data).toString('base64');
 
+      // 🧠 GPT extrae datos del ticket
       const gptData = await askGPT4oWithImage(base64Image);
+
+      // 💱 Detectar currency por país
+      const amount = extractAmount(gptData.total);
+
+      const countryToCurrency = {
+        'España': 'EUR', 'Francia': 'EUR', 'Alemania': 'EUR', 'Italia': 'EUR',
+        'Portugal': 'EUR', 'Bélgica': 'EUR', 'Países Bajos': 'EUR', 'Austria': 'EUR',
+        'Irlanda': 'EUR', 'Grecia': 'EUR', 'Estados Unidos': 'USD', 'Canadá': 'CAD',
+        'México': 'MXN', 'Argentina': 'ARS', 'Chile': 'CLP', 'Colombia': 'COP',
+        'Perú': 'PEN', 'Uruguay': 'UYU', 'Venezuela': 'VES', 'República Dominicana': 'DOP',
+        'Ecuador': 'USD', 'El Salvador': 'USD', 'Brasil': 'BRL', 'Paraguay': 'PYG',
+        'Bolivia': 'BOB', 'Reino Unido': 'GBP', 'Suiza': 'CHF', 'Suecia': 'SEK',
+        'Noruega': 'NOK', 'Dinamarca': 'DKK', 'Polonia': 'PLN', 'Hungría': 'HUF',
+        'Chequia': 'CZK', 'Rusia': 'RUB', 'Turquía': 'TRY', 'Marruecos': 'MAD',
+        'Egipto': 'EGP', 'Sudáfrica': 'ZAR', 'China': 'CNY', 'Japón': 'JPY',
+        'Corea del Sur': 'KRW', 'India': 'INR', 'Vietnam': 'VND', 'Tailandia': 'THB',
+        'Australia': 'AUD', 'Nueva Zelanda': 'NZD', 'Emiratos Árabes Unidos': 'AED',
+        'Arabia Saudita': 'SAR'
+      };
+
+      let currency = countryToCurrency[session.geo_country] || 'EUR';
+      let total_eur = null;
+
+      if (currency !== 'EUR' && amount) {
+        total_eur = await convertToEUR(amount, currency);
+      }
+
+      gptData.currency = currency;
+      gptData.total_eur = total_eur;
 
       session.ticketData = gptData;
       session.step = 'review_ticket';
 
-      await saveTicketToDB({
+      // Guardar en base de datos
+      console.log('📦 Sesión final antes de guardar ticket:', session);
+
+      const ticketId = await saveTicketToDB({
         chat_id: chatId,
         obra: session.obra,
-        pais: session.pais,
-        gpt_data: gptData,    
+        user_name: msg.from.first_name || '',
+        pais: session.geo_country,
+        geo_country: session.geo_country,
+        geo_city: session.geo_city,
+        location: session.location,
+        gpt_data: gptData
       });
 
+      session.ticketId = ticketId;
+
+      // Mostrar resumen
       const { store, card_last4, total, date, time, items } = gptData;
 
-      const resumen = `🧾 *Establecimiento:* ${store || 'N/A'}\n💳 *Tarjeta:* **** ${card_last4 || 'N/A'}\n🕒 *Fecha:* ${date || 'N/A'} - ${time || ''}\n💰 *Total:* ${total || 'N/A'}\n\n🛒 *Productos:*\n${(items || []).map(i => `- ${i.name} → ${i.category}`).join('\n')}`;
+      let totalLine = `💰 *Total:* ${total || 'N/A'} (${currency})`;
+      if (total_eur) totalLine += ` (~${total_eur} EUR)`;
+
+      const resumen = `🧾 *Establecimiento:* ${store || 'N/A'}
+💳 *Tarjeta:* **** ${card_last4 || 'N/A'}
+🕒 *Fecha:* ${date || 'N/A'} - ${time || ''}
+${totalLine}
+
+🛒 *Productos:*
+${(items || []).map(i => `- ${i.name} → ${i.category}`).join('\n')}`;
 
       await bot.sendMessage(chatId, `🔍 Datos detectados:\n\n${resumen}`, {
         parse_mode: 'Markdown',
@@ -41,7 +95,8 @@ module.exports = (bot, sessions) => {
             ],
             [
               { text: '✏️ Fecha', callback_data: 'edit_date' },
-              { text: '✏️ Total', callback_data: 'edit_total' }
+              { text: '✏️ Total', callback_data: 'edit_total' },
+              { text: '✏️ Moneda', callback_data: 'edit_currency' }
             ],
             [
               { text: '✅ Todo correcto / Continuar', callback_data: 'confirm_ticket' }
