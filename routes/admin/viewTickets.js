@@ -21,8 +21,14 @@ module.exports = (bot) => {
 🕒 *Fecha:* ${ticket.date || 'N/A'} - ${ticket.time || ''}
 📅 *Creado:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
-
-        await bot.sendMessage(chatId, resumen, { parse_mode: 'Markdown' });
+        if (ticket.image) {
+          await bot.sendPhoto(chatId, Buffer.from(ticket.image, 'base64'), {
+            caption: resumen,
+            parse_mode: 'Markdown'
+          });
+        } else {
+          await bot.sendMessage(chatId, resumen, { parse_mode: 'Markdown' });
+        }
       }
     } catch (err) {
       console.error('❌ Error mostrando tickets:', err.message);

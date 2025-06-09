@@ -66,7 +66,8 @@ module.exports = (bot, sessions) => {
         geo_country: session.geo_country,
         geo_city: session.geo_city,
         location: session.location,
-        gpt_data: gptData
+        gpt_data: gptData,
+        image_base64: base64Image
       });
 
       session.ticketId = ticketId;

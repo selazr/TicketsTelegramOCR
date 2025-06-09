@@ -14,6 +14,7 @@ const Ticket = sequelize.define('Ticket', {
   date: DataTypes.STRING,
   time: DataTypes.STRING,
   items_json: DataTypes.TEXT,
+  image: DataTypes.TEXT('long'),
   location_lat: DataTypes.STRING,
   location_lng: DataTypes.STRING,
   geo_country: DataTypes.STRING,

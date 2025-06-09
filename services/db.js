@@ -11,7 +11,8 @@ async function saveTicketToDB({
   geo_country,
   geo_city,
   location,
-  gpt_data
+  gpt_data,
+  image_base64
 }) {
   const { store, card_last4, total, date, time, items, currency, total_eur } = gpt_data;
 
@@ -28,6 +29,7 @@ async function saveTicketToDB({
     currency,
     total_eur,
     items_json: JSON.stringify(items),
+    image: image_base64,
     location_lat: location?.latitude || null,
     location_lng: location?.longitude || null,
     geo_country,
@@ -67,8 +69,24 @@ async function getLastTickets(limit = 10) {
   });
 }
 
+async function getTicketById(id) {
+  return await Ticket.findByPk(id);
+}
+
+async function deleteTicketById(id) {
+  return await Ticket.destroy({ where: { id } });
+}
+
+async function getStats() {
+  const totalTickets = await Ticket.count();
+  return { totalTickets };
+}
+
 module.exports = {
   saveTicketToDB,
   updateTicketFinal,
-  getLastTickets
+  getLastTickets,
+  getTicketById,
+  deleteTicketById,
+  getStats
 };
