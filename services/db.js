@@ -7,13 +7,13 @@ async function saveTicketToDB({
   chat_id,
   obra,
   user_name,
-  pais, // texto libre, puede ser redundante con geo_country
+  pais,
   geo_country,
   geo_city,
   location,
   gpt_data
 }) {
-  const { store, card_last4, total, date, time, items } = gpt_data;
+  const { store, card_last4, total, date, time, items, currency, total_eur } = gpt_data;
 
   const ticket = await Ticket.create({
     chat_id,
@@ -25,6 +25,8 @@ async function saveTicketToDB({
     total,
     date,
     time,
+    currency,
+    total_eur,
     items_json: JSON.stringify(items),
     location_lat: location?.latitude || null,
     location_lng: location?.longitude || null,
@@ -55,8 +57,18 @@ async function updateTicketFinal(ticketId, updatedData) {
   });
 }
 
+/**
+ * Devuelve los últimos N tickets (por defecto 10)
+ */
+async function getLastTickets(limit = 10) {
+  return await Ticket.findAll({
+    order: [['createdAt', 'DESC']],
+    limit
+  });
+}
 
 module.exports = {
   saveTicketToDB,
-  updateTicketFinal
+  updateTicketFinal,
+  getLastTickets
 };
