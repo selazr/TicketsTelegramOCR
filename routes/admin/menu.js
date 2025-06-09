@@ -5,6 +5,7 @@ const {
   getStats
 } = require('../../services/db');
 const { adminIds } = require('../../config/admins');
+const logger = require('../../services/logger');
 
 module.exports = (bot) => {
   const adminSessions = {};
@@ -63,7 +64,7 @@ module.exports = (bot) => {
 
         await bot.answerCallbackQuery({ callback_query_id: query.id });
       } catch (err) {
-        console.error('❌ Error al mostrar tickets:', err.message);
+        logger.error(`❌ Error al mostrar tickets: ${err.message}`);
         await bot.sendMessage(chatId, '⚠️ Ocurrió un error al obtener los tickets.');
       }
     }

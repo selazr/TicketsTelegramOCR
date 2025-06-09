@@ -1,4 +1,5 @@
 const { reverseGeocode } = require('../services/geocode');
+const logger = require('../services/logger');
 
 module.exports = (bot, sessions) => {
   bot.on('message', async (msg) => {
@@ -38,8 +39,8 @@ module.exports = (bot, sessions) => {
     session.geo_city = geo.city;
     session.geo_text = geo.formatted;
 
-    console.log(`📍 Ubicación recibida de ${msg.from.first_name || 'usuario'}: ${latitude}, ${longitude}`);
-    console.log(`🌍 Localización detectada: ${geo.formatted}`);
+    logger.info(`📍 Ubicación recibida de ${msg.from.first_name || 'usuario'}: ${latitude}, ${longitude}`);
+    logger.info(`🌍 Localización detectada: ${geo.formatted}`);
 
     session.step = 'ask_ticket';
 

@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require('../services/httpClient');
 const { askGPT4oWithImage } = require('../services/gpt');
 const { saveTicketToDB } = require('../services/db');
 const {
@@ -6,6 +6,7 @@ const {
   detectCurrencySymbol,
   extractAmount
 } = require('../services/exchange');
+const logger = require('../services/logger');
 
 module.exports = (bot, sessions) => {
   bot.on('photo', async (msg) => {
@@ -56,7 +57,7 @@ module.exports = (bot, sessions) => {
       session.step = 'review_ticket';
 
       // Guardar en base de datos
-      console.log('📦 Sesión final antes de guardar ticket:', session);
+      logger.info(`📦 Sesión final antes de guardar ticket: ${JSON.stringify(session)}`);
 
       const ticketId = await saveTicketToDB({
         chat_id: chatId,
@@ -107,7 +108,7 @@ ${(items || []).map(i => `- ${i.name} → ${i.category}`).join('\n')}`;
       });
 
     } catch (err) {
-      console.error('❌ Error con la imagen:', err.message);
+      logger.error(`❌ Error con la imagen: ${err.message}`);
       bot.sendMessage(chatId, '❌ Error al procesar el ticket. Intenta con una imagen clara.');
     }
   });

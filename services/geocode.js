@@ -1,4 +1,5 @@
-const axios = require('axios');
+const axios = require('./httpClient');
+const logger = require('./logger');
 
 async function reverseGeocode(lat, lng) {
   try {
@@ -21,7 +22,7 @@ async function reverseGeocode(lat, lng) {
       formatted: result.formatted || null
     };
   } catch (err) {
-    console.error('❌ Error en reverseGeocode:', err.message);
+    logger.error(`❌ Error en reverseGeocode: ${err.message}`);
     return {
       country: null,
       city: null,

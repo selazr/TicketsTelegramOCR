@@ -1,4 +1,5 @@
 const { getLastTickets, getTicketById } = require('../../services/db');
+const logger = require('../../services/logger');
 
 module.exports = (bot) => {
   bot.onText(/^\/admin_tickets$/, async (msg) => {
@@ -32,7 +33,7 @@ module.exports = (bot) => {
         }
       }
     } catch (err) {
-      console.error('❌ Error mostrando tickets:', err.message);
+      logger.error(`❌ Error mostrando tickets: ${err.message}`);
       await bot.sendMessage(chatId, '⚠️ Error al recuperar los tickets.');
     }
   });
