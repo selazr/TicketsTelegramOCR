@@ -19,13 +19,22 @@ module.exports = (bot, sessions) => {
       const file = await bot.getFile(photo.file_id);
       const url = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
       const res = await axios({ url, responseType: 'arraybuffer' });
-      const base64Image = Buffer.from(res.data).toString('base64');
+
+      // 🖼️ Mejora la calidad de la imagen para una mejor lectura
+      const processed = await require('sharp')(res.data)
+        .resize({ width: 1024 })
+        .grayscale()
+        .sharpen()
+        .toBuffer();
+
+      const base64Image = Buffer.from(processed).toString('base64');
 
       // 🧠 GPT extrae datos del ticket
       const gptData = await askGPT4oWithImage(base64Image);
 
-      // 💱 Detectar currency por país
+      // 💱 Detectar currency en el ticket y por país
       const amount = extractAmount(gptData.total);
+      let currency = gptData.currency || detectCurrencySymbol(gptData.total);
 
       const countryToCurrency = {
         'España': 'EUR', 'Francia': 'EUR', 'Alemania': 'EUR', 'Italia': 'EUR',
@@ -43,7 +52,9 @@ module.exports = (bot, sessions) => {
         'Arabia Saudita': 'SAR'
       };
 
-      let currency = countryToCurrency[session.geo_country] || 'EUR';
+      if (!currency) {
+        currency = countryToCurrency[session.geo_country] || 'EUR';
+      }
       let total_eur = null;
 
       if (currency !== 'EUR' && amount) {

@@ -1,5 +1,6 @@
 const { getLastTickets, getTicketById } = require('../../services/db');
 const logger = require('../../services/logger');
+const { getDestination } = require('../../services/ticketUtils');
 
 module.exports = (bot) => {
   bot.onText(/^\/admin_tickets$/, async (msg) => {
@@ -14,12 +15,15 @@ module.exports = (bot) => {
       }
 
       for (const ticket of tickets) {
+        const destino = getDestination(ticket.items_json);
         const resumen = `🎟️ *Ticket ID:* ${ticket.id}
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
+💳 *Tarjeta:* **** ${ticket.card_last4 || 'N/A'}
 💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
           (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + `
+📦 *Destino:* ${destino}
 🕒 *Fecha:* ${ticket.date || 'N/A'} - ${ticket.time || ''}
 📅 *Creado:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
@@ -52,12 +56,15 @@ module.exports = (bot) => {
       return bot.answerCallbackQuery({ callback_query_id: query.id });
     }
 
+    const destino = getDestination(ticket.items_json);
     const resumen = `🎟️ *Ticket ID:* ${ticket.id}\n` +
       `👤 *Usuario:* ${ticket.user_name || 'N/A'}\n` +
       `📍 *País:* ${ticket.pais || 'N/A'}\n` +
       `🏗️ *Obra:* ${ticket.obra || 'N/A'}\n` +
+      `💳 *Tarjeta:* **** ${ticket.card_last4 || 'N/A'}\n` +
       `💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
       (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + '\n' +
+      `📦 *Destino:* ${destino}\n` +
       `🕒 *Fecha:* ${ticket.date || 'N/A'} - ${ticket.time || ''}` + '\n' +
       `📅 *Creado:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 

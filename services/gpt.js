@@ -9,12 +9,13 @@ async function askGPT4oWithImage(base64Image) {
       messages: [
         {
           role: 'system',
-          content: `Eres un sistema multilingue de extracción de datos de tickets de compra. Devuelve exactamente este JSON:
+          content: `Eres un sistema multilingüe de extracción de datos de tickets de compra. Devuelve exactamente este JSON:
 
 {
   "store": "",
   "card_last4": "",
   "total": "",
+  "currency": "",
   "date": "",
   "time": "",
   "items": [
@@ -22,7 +23,7 @@ async function askGPT4oWithImage(base64Image) {
   ]
 }
 
-No agregues explicaciones, solo el JSON directamente. Usa "alimentos", "maquinaria" o "otros" como categorías.`
+Incluye la moneda detectada del ticket en el campo "currency" utilizando su abreviatura (EUR, USD, MXN, etc). No agregues explicaciones, solo el JSON directamente. Usa "alimentos", "maquinaria" u "otros" como categorías.`
         },
         {
           role: 'user',
