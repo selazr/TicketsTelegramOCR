@@ -6,6 +6,7 @@ const {
 } = require('../../services/db');
 const { adminIds } = require('../../config/admins');
 const logger = require('../../services/logger');
+const { getDestination } = require('../../services/ticketUtils');
 
 module.exports = (bot) => {
   const adminSessions = {};
@@ -44,12 +45,15 @@ module.exports = (bot) => {
         }
 
         for (const ticket of tickets) {
+          const destino = getDestination(ticket.items_json);
           const resumen = `🎟️ *Ticket ID:* ${ticket.id}
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
+💳 *Tarjeta:* **** ${ticket.card_last4 || 'N/A'}
 💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
             (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + `
+📦 *Destino:* ${destino}
 🕒 *Fecha:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
           if (ticket.image) {
@@ -103,12 +107,15 @@ module.exports = (bot) => {
       if (!ticket) {
         await bot.sendMessage(chatId, '❌ Ticket no encontrado.');
       } else {
+        const destino = getDestination(ticket.items_json);
         const resumen = `🎟️ *Ticket ID:* ${ticket.id}
 👤 *Usuario:* ${ticket.user_name || 'N/A'}
 📍 *País:* ${ticket.pais || 'N/A'}
 🏗️ *Obra:* ${ticket.obra || 'N/A'}
+💳 *Tarjeta:* **** ${ticket.card_last4 || 'N/A'}
 💰 *Total:* ${ticket.total || 'N/A'} (${ticket.currency || 'N/A'})` +
           (ticket.total_eur ? ` (~${ticket.total_eur} EUR)` : '') + `
+📦 *Destino:* ${destino}
 🕒 *Fecha:* ${new Date(ticket.createdAt).toLocaleString('es-ES')}`;
 
         if (ticket.image) {

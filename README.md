@@ -2,6 +2,8 @@
 
 Bot de Telegram para registrar tickets de compra utilizando OCR y GPT-4o.
 
+Desde la imagen se detecta automáticamente la moneda del ticket para convertir el importe a euros si es necesario. Además se mejoró el preprocesado de la imagen para aumentar la precisión en tickets con poca calidad.
+
 ## Instalación
 
 1. Clona el repositorio y entra en la carpeta.
